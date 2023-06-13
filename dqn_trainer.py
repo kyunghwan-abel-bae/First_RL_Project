@@ -69,7 +69,7 @@ class DQNTrainer:
         random.seed(seed)
         np.random.seed(seed)
         os.environ['PYTHONHASHSEED'] = str(seed)
-        tf.set_random_seed(seed)
+        tf.random.set_seed(seed)
 
     def train(self):
         pbar = tqdm(initial=self.current_episode, total=self.episodes, unit='episodes')

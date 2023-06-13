@@ -19,6 +19,8 @@ class SnakeStateTransition:
         self.tx, self.ty = initial_tail_position
         self.snake = deque(initial_snake)
         self.direction = initial_snake[-1]
+        self.points = len(self.snake) + 1
+        print("self.points : ", self.points)
 
         for _ in range(num_feed):
             self._generate_feed()
@@ -38,7 +40,8 @@ class SnakeStateTransition:
         return np.eye(NUM_CHANNELS)[self.field]
 
     def get_length(self):
-        return len(self.snake) + 1
+        # return len(self.snake) + 1
+        return self.points
 
     def move_forward(self):
         hx = self.hx + SnakeStateTransition.DX[self.direction]
@@ -50,7 +53,8 @@ class SnakeStateTransition:
 
         is_feed = FeedBlock.contains(self.field[hx][hy])
 
-        if not is_feed:
+        # if not is_feed:
+        if True:
             self.field[self.tx, self.ty] = EmptyBlock.get_code()
             td = self.snake.popleft()
             self.tx += SnakeStateTransition.DX[td]
@@ -64,7 +68,9 @@ class SnakeStateTransition:
 
         if is_feed:
             self._generate_feed()
-            return self.get_length(), False
+            self.points += 1
+            # return self.get_length(), False
+            return self.points, False
 
         return 0, False
 
