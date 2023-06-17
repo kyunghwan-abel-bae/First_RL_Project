@@ -103,10 +103,12 @@ class Snake:
         self.field_height, self.field_width = self.level_loader.get_field_size()
 
         pygame.init()
+        '''
         self.screen = pygame.display.set_mode((
             self.field_width * block_pixels,
             self.field_height * block_pixels
         ))
+        '''
         self.clock = pygame.time.Clock()
 
         self.reset()
@@ -135,6 +137,7 @@ class Snake:
         pygame.quit()
 
     def render(self, fps):
+        '''
         pygame.display.set_caption('length: {}'.format(self.state_transition.get_length()))
         pygame.event.pump()
         self.screen.fill((255, 255, 255))
@@ -151,6 +154,7 @@ class Snake:
                 )
 
         pygame.display.flip()
+        '''
         self.clock.tick(fps)
 
     def save_image(self, save_path):
