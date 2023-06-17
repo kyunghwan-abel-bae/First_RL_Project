@@ -1,6 +1,8 @@
 import argparse
 from dqn_trainer import DQNTrainer
 
+print("test01")
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--level_filepath', type=str, required=True, help='level filepath')
 parser.add_argument('--checkpoint', type=str, required=True)
