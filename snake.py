@@ -12,6 +12,8 @@ NUM_ACTIONS = 3
 class SnakeStateTransition:
     DX, DY = [-1, 0, 1, 0], [0, 1, 0, -1]
 
+    SCORE = 0
+
     def __init__(self, field_size, field, num_feed, initial_head_position, initial_tail_position, initial_snake):
         self.field_height, self.field_width = field_size
         self.field = field.copy()
@@ -19,8 +21,9 @@ class SnakeStateTransition:
         self.tx, self.ty = initial_tail_position
         self.snake = deque(initial_snake)
         self.direction = initial_snake[-1]
-        self.points = len(self.snake) + 1
-        print("self.points : ", self.points)
+        # self.points = len(self.snake) + 1
+        SnakeStateTransition.SCORE = len(self.snake) + 1
+        # print("self.points : ", self.points)
 
         for _ in range(num_feed):
             self._generate_feed()
@@ -41,7 +44,7 @@ class SnakeStateTransition:
 
     def get_length(self):
         # return len(self.snake) + 1
-        return self.points
+        return SnakeStateTransition.SCORE
 
     def move_forward(self):
         hx = self.hx + SnakeStateTransition.DX[self.direction]
@@ -68,9 +71,9 @@ class SnakeStateTransition:
 
         if is_feed:
             self._generate_feed()
-            self.points += 1
+            SnakeStateTransition.SCORE += 1
             # return self.get_length(), False
-            return self.points, False
+            return SnakeStateTransition.SCORE, False
 
         return 0, False
 
@@ -103,10 +106,22 @@ class Snake:
         self.field_height, self.field_width = self.level_loader.get_field_size()
 
         pygame.init()
+        self.font_score = pygame.font.Font(None, 24)  # 폰트 설정
+        # self.text_score = font_score.render("text", True, (255, 0, 0))# + str(SnakeStateTransition.SCORE), True, (255, 0, 0))
+
+        self.screen = pygame.display.set_mode((
+            800, 600
+        ))
+
+        '''
         self.screen = pygame.display.set_mode((
             self.field_width * block_pixels,
             self.field_height * block_pixels
         ))
+        '''
+
+        # self.screen.blit(text_score, (300, 300))  # 텍스트 위치 설정
+
         self.clock = pygame.time.Clock()
 
         self.reset()
@@ -149,6 +164,9 @@ class Snake:
                     cp[0],
                     (cp[1] + [j, i])*self.block_pixels
                 )
+
+        self.text_score = self.font_score.render("score: " + str(SnakeStateTransition.SCORE), True, (255, 0, 0))
+        self.screen.blit(self.text_score, (300, 300))  # 텍스트 위치 설정
 
         pygame.display.flip()
         self.clock.tick(fps)
