@@ -1,6 +1,14 @@
 import argparse
 from dqn_trainer import DQNTrainer
 
+import sys
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # TensorFlow의 출력 로그를 비활성화
+
+# 표준 출력 비활성화
+stdout = sys.stdout
+sys.stdout = open(os.devnull, 'w')
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--level_filepath', type=str, required=True, help='level filepath')
 parser.add_argument('--episodes', type=int, default=30000, help='the number of episodes to train')
