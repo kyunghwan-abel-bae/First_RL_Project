@@ -9,7 +9,6 @@ import os
 from summary import Summary
 from level_loader import LevelLoader
 
-
 import matplotlib.pyplot as plt
 
 
@@ -49,17 +48,7 @@ class DQNTrainer:
         self.enable_save = enable_save
         self.save_freq = save_freq
 
-        self.x_data = []
-        self.y_data = []
-
-        # 그래프 설정
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        plt.title('Real-time Graph')
-        plt.grid(True)
-
-        # 초기 그래프 그리기
-        self.line, = plt.plot(self.x_data, self.y_data, 'bo-')
+        self.rewards_history = []  # List to store episode rewards
 
         if enable_save and not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -114,24 +103,15 @@ class DQNTrainer:
             self.summary.add('reward', self.env.tot_reward)
             self.summary.add('steps', steps)
 
+            self.rewards_history.append(self.env.tot_reward)  # Store the episode reward
+
             # decay epsilon
             self.epsilon = max(self.epsilon-self.epsilon_decay, self.min_epsilon)
 
             self.current_episode += 1
 
-            self.x_data.append(self.current_episode)
-            self.y_data.append(reward)
-
             if self.current_episode % 100 == 0:
-                # 그래프 업데이트
-                self.line.set_data(self.x_data, self.y_data)
-                print("self.y_data : ", self.y_data)
-                plt.xlim(min(self.x_data), max(self.x_data))
-                plt.ylim(min(self.y_data), max(self.y_data))
-
-                # 그래프 갱신 및 잠시 멈추기
-                plt.draw()
-                plt.pause(0.5)
+                self.update_plot()
 
             # save model, training info
             if self.enable_save and self.current_episode % self.save_freq == 0:
@@ -217,3 +197,13 @@ class DQNTrainer:
         self.epsilon = dic['epsilon']
         self.summary = dic['summary']
         self.max_average_length = dic['max_average_length']
+
+    def update_plot(self):
+        # Create a figure and axis for the real-time plot
+        plt.figure(figsize=(8, 6))
+        plt.plot(range(len(self.rewards_history)), self.rewards_history)
+        plt.xlabel('Episode')
+        plt.ylabel('Reward')
+        plt.title('Reward per Episode')
+        plt.draw()
+        plt.pause(0.05)
