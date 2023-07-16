@@ -12,7 +12,6 @@ from level_loader import LevelLoader
 import matplotlib.pyplot as plt
 
 
-
 class DQNTrainer:
     def __init__(self,
                  level_filepath,
@@ -68,7 +67,7 @@ class DQNTrainer:
         self.current_episode = 0
         self.max_average_length = 0
 
-        self.epsilon_decay = (initial_epsilon-min_epsilon)/(exploration_ratio*episodes)
+        self.epsilon_decay = (initial_epsilon - min_epsilon) / (exploration_ratio * episodes)
 
     def set_random_seed(self, seed):
         random.seed(seed)
@@ -83,6 +82,7 @@ class DQNTrainer:
 
             done = False
             steps = 0
+            total_loss = 0
             while not done and steps < self.max_steps:
                 if random.random() > self.epsilon:
                     action = np.argmax(self.agent.get_q_values(np.array([current_state])))
@@ -92,7 +92,13 @@ class DQNTrainer:
                 next_state, reward, done = self.env.step(action)
 
                 self.agent.update_replay_memory(current_state, action, reward, next_state, done)
-                self.summary.add('loss', self.agent.train())
+                temp_loss = self.agent.train()
+                self.summary.add('loss', temp_loss)
+
+                if temp_loss is None:
+                    temp_loss = 1
+
+                total_loss = total_loss + temp_loss
 
                 current_state = next_state
                 steps += 1
@@ -103,10 +109,11 @@ class DQNTrainer:
             self.summary.add('reward', self.env.tot_reward)
             self.summary.add('steps', steps)
 
-            self.rewards_history.append(self.env.tot_reward)  # Store the episode reward
+            # self.rewards_history.append(self.env.tot_reward)  # Store the episode reward
+            self.rewards_history.append(total_loss / steps)  # Store the episode reward
 
             # decay epsilon
-            self.epsilon = max(self.epsilon-self.epsilon_decay, self.min_epsilon)
+            self.epsilon = max(self.epsilon - self.epsilon_decay, self.min_epsilon)
 
             self.current_episode += 1
 
@@ -141,7 +148,7 @@ class DQNTrainer:
 
         self.env.render(fps=render_fps)
         if save_dir is not None:
-            self.env.save_image(save_path=save_dir+'/0.png')
+            self.env.save_image(save_path=save_dir + '/0.png')
 
         done = False
         steps = 0
@@ -157,7 +164,7 @@ class DQNTrainer:
 
             self.env.render(fps=render_fps)
             if save_dir is not None:
-                self.env.save_image(save_path=save_dir+'/{}.png'.format(steps))
+                self.env.save_image(save_path=save_dir + '/{}.png'.format(steps))
 
         return self.env.get_length()
 
@@ -166,8 +173,8 @@ class DQNTrainer:
 
     def save(self, suffix):
         self.agent.save(
-            self.save_dir+'/model_{}.h5'.format(suffix),
-            self.save_dir+'/target_model_{}.h5'.format(suffix)
+            self.save_dir + '/model_{}.h5'.format(suffix),
+            self.save_dir + '/target_model_{}.h5'.format(suffix)
         )
 
         dic = {
@@ -179,16 +186,16 @@ class DQNTrainer:
             'max_average_length': self.max_average_length
         }
 
-        with open(self.save_dir+'/training_info_{}.pkl'.format(suffix), 'wb') as fout:
+        with open(self.save_dir + '/training_info_{}.pkl'.format(suffix), 'wb') as fout:
             pickle.dump(dic, fout)
 
     def load(self, suffix):
         self.agent.load(
-            self.save_dir+'/model_{}.h5'.format(suffix),
-            self.save_dir+'/target_model_{}.h5'.format(suffix)
+            self.save_dir + '/model_{}.h5'.format(suffix),
+            self.save_dir + '/target_model_{}.h5'.format(suffix)
         )
 
-        with open(self.save_dir+'/training_info_{}.pkl'.format(suffix), 'rb') as fin:
+        with open(self.save_dir + '/training_info_{}.pkl'.format(suffix), 'rb') as fin:
             dic = pickle.load(fin)
 
         self.agent.replay_memory = dic['replay_memory']
@@ -203,7 +210,7 @@ class DQNTrainer:
         plt.figure(figsize=(8, 6))
         plt.plot(range(len(self.rewards_history)), self.rewards_history)
         plt.xlabel('Episode')
-        plt.ylabel('Reward')
-        plt.title('Reward per Episode')
+        plt.ylabel('Loss')
+        plt.title('Average Loss per Episode')
         plt.draw()
         plt.pause(0.05)
